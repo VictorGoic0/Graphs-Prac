@@ -41,12 +41,18 @@ class Graph:
                     stack.push(neighbor)
         print(path)
     def dft_recursive(self, starting_vertex):
-        """
-        Print each vertex in depth-first order
-        beginning from starting_vertex.
-        This should be done using recursion.
-        """
-        pass  # TODO
+        print(starting_vertex)
+        cache = set()
+        cache.add(starting_vertex)
+        def inner_recursion(vertex, cache):
+            if vertex not in cache:
+                cache.add(vertex)
+                print(vertex)
+                if len(self.vertices[vertex]) > 0:
+                    for neighbor in self.vertices[vertex]:
+                        inner_recursion(neighbor, cache)
+        for neighbor in self.vertices[starting_vertex]:
+            inner_recursion(neighbor, cache)
     def bfs(self, starting_vertex, destination_vertex):
         """
         Return a list containing the shortest path from
