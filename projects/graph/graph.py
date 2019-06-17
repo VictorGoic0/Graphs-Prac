@@ -14,6 +14,7 @@ class Graph:
             self.vertices[v1].add(v2)
         else:
             print("Please enter valid vertex values.")
+
     def bft(self, starting_vertex):
         queue = Queue()
         queue.enqueue(starting_vertex)
@@ -27,6 +28,7 @@ class Graph:
                 for neighbor in self.vertices[node]:
                     queue.enqueue(neighbor)
         print(path)
+
     def dft(self, starting_vertex):
         stack = Stack()
         stack.push(starting_vertex)
@@ -40,19 +42,15 @@ class Graph:
                 for neighbor in self.vertices[node]:
                     stack.push(neighbor)
         print(path)
-    def dft_recursive(self, starting_vertex):
-        print(starting_vertex)
-        cache = set()
-        cache.add(starting_vertex)
-        def inner_recursion(vertex, cache):
-            if vertex not in cache:
-                cache.add(vertex)
-                print(vertex)
-                if len(self.vertices[vertex]) > 0:
-                    for neighbor in self.vertices[vertex]:
-                        inner_recursion(neighbor, cache)
-        for neighbor in self.vertices[starting_vertex]:
-            inner_recursion(neighbor, cache)
+
+    def dft_recursive(self, starting_vertex, cache = set()):
+        if starting_vertex not in cache:
+            print(starting_vertex)
+            cache.add(starting_vertex)
+            if len(self.vertices[starting_vertex]) > 0:
+                for neighbor in self.vertices[starting_vertex]:
+                    self.dft_recursive(neighbor, cache)
+
     def bfs(self, starting_vertex, destination_vertex):
         """
         Return a list containing the shortest path from
@@ -60,6 +58,7 @@ class Graph:
         breath-first order.
         """
         pass  # TODO
+        
     def dfs(self, starting_vertex, destination_vertex):
         """
         Return a list containing a path from
