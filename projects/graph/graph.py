@@ -10,16 +10,21 @@ class Graph:
     def add_vertex(self, vertex):
         self.vertices[vertex] = set()
     def add_edge(self, v1, v2):
-        """
-        Add a directed edge to the graph.
-        """
-        self.vertices[v1].add(v2)
+        if v1 in self.vertices and v2 in self.vertices:
+            self.vertices[v1].add(v2)
+        else:
+            print("Please enter valid vertex values.")
     def bft(self, starting_vertex):
-        """
-        Print each vertex in breadth-first order
-        beginning from starting_vertex.
-        """
-        pass  # TODO
+        queue = Queue()
+        queue.enqueue(starting_vertex)
+        visited = set()
+        while queue.size() > 0:
+            node = queue.dequeue()
+            if node not in visited:
+                visited.add(node)
+                for neighbor in self.vertices[node]:
+                    queue.enqueue(neighbor)
+        print(visited)
     def dft(self, starting_vertex):
         """
         Print each vertex in depth-first order
