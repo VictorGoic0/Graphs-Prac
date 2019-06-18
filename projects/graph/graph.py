@@ -79,6 +79,7 @@ class Graph:
                 return path
             elif vertex not in visited:
                 visited.add(vertex)
+                # Looping through neighbors is random, this if statement just checks if the set contains the vertex we want
                 if destination_vertex in self.vertices[vertex]:
                     path.append(destination_vertex)
                     return path
