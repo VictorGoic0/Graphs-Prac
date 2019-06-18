@@ -30,6 +30,7 @@ def earliest_ancestor(ancestors, person):
             visited = set()
             paths = []
             pathLengths = {}
+            maxLength = 0
             while stack.size() > 0:
                 path = stack.pop()
                 node = path[-1]
@@ -42,11 +43,12 @@ def earliest_ancestor(ancestors, person):
                 elif node not in graph:
                     paths.append(path)
                     length = len(path)
+                    if length > maxLength:
+                        maxLength = length
                     if length not in pathLengths:
                         pathLengths[length] = 1
                     else:
                         pathLengths[length] += 1
-            maxLength = max(pathLengths)
             if pathLengths[maxLength] == 1:
                 return paths[-1][-1]
             else:
