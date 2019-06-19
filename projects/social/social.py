@@ -60,18 +60,21 @@ class SocialGraph:
                 randomFriendID = random.randint(1, numUsers)
                 if randomFriendID != userID and randomFriendID not in self.friendships[userID]:
                     self.addFriendship(userID, randomFriendID)
+                # else:
+                #     while True:
+                #         randomFriendID = random.randint(1, numUsers)
+                #         if randomFriendID != userID and randomFriendID not in self.friendships[userID]:
+                #             self.addFriendship(userID, randomFriendID)
+                #             break
+                # This while loop will make the loop hang on large inputs, so I commented it out 
 
     def getAllSocialPaths(self, userID):
-        """Takes a user's userID as an argument
+        if userID not in self.friendships:
+            return -1
 
-        Returns a dictionary containing every user in that user's
-        extended network with the shortest friendship path between them.
-
-        The key is the friend's ID and the value is the path."""
-        visited = {}
         if len(self.friendships[userID]) == 0:
-            return visited
-        # do BFS
+            return {}
+
         def bfs(graph, starting_vertex):
             q = Queue()
             q.enqueue([starting_vertex])
