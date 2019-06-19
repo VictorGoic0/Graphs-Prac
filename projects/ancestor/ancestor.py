@@ -24,7 +24,7 @@ def earliest_ancestor(ancestors, person):
     if person not in graph:
         return -1
     else:
-        def dft(graph, starting_vertex):
+        def dfs(graph, starting_vertex):
             stack = Stack()
             stack.push([starting_vertex])
             visited = set()
@@ -54,5 +54,5 @@ def earliest_ancestor(ancestors, person):
                 for subArray in paths[maxLength]:
                     minimum.append(subArray[-1])
                 return min(minimum)
-        ancestor = dft(graph, person)
+        ancestor = dfs(graph, person)
         return ancestor
