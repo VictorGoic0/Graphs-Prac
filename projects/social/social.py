@@ -60,13 +60,6 @@ class SocialGraph:
                 randomFriendID = random.randint(1, numUsers)
                 if randomFriendID != userID and randomFriendID not in self.friendships[userID]:
                     self.addFriendship(userID, randomFriendID)
-                # else:
-                #     while True:
-                #         randomFriendID = random.randint(1, numUsers)
-                #         if randomFriendID != userID and randomFriendID not in self.friendships[userID]:
-                #             self.addFriendship(userID, randomFriendID)
-                #             break
-                # This while loop will make the loop hang on large inputs, so I commented it out 
 
     def getAllSocialPaths(self, userID):
         if userID not in self.friendships:
@@ -78,20 +71,17 @@ class SocialGraph:
         def bfs(graph, starting_vertex):
             q = Queue()
             q.enqueue([starting_vertex])
-            visited = set()
             friendships = {}
             while q.size() > 0:
                 path = q.dequeue()
                 vertex = path[-1]
-                if vertex not in visited:
-                    visited.add(vertex)
+                if vertex not in friendships:
                     friendships[vertex] = path
                     for friend in graph[vertex]:
-                        if friend not in visited:
+                        if friend not in friendships:
                             new_path = path[:]
                             new_path.append(friend)
                             q.enqueue(new_path)
-            friendships.pop(starting_vertex)
             return friendships
         socialPaths = bfs(self.friendships, userID)
         return socialPaths
@@ -99,7 +89,7 @@ class SocialGraph:
 
 if __name__ == '__main__':
     sg = SocialGraph()
-    sg.populateGraph(10, 2)
+    sg.populateGraph(1000, 5)
     print(sg.friendships)
     connections = sg.getAllSocialPaths(1)
     print(connections)
