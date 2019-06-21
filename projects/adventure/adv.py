@@ -36,6 +36,22 @@ for (room, value) in roomGraph.items():
     if w in value[1]:
         mapGraph[room][w] = value[1][w]
 
+conversionMap = {}
+
+for (room, value) in mapGraph.items():
+    conversionMap[room] = {}
+    for (direction, roomNumber) in value.items():
+        conversionMap[room][roomNumber] = direction
+
+modifiedMap = {}
+
+for (key, value) in mapGraph.items():
+    modifiedMap[key] = []
+    modifiedMap[key].append(set())
+    modifiedMap[key].append(False)
+    for (direction, destination) in value.items():
+        modifiedMap[key][0].add(destination)
+
 player = Player("Name", world.startingRoom)
 
 print(mapGraph)
@@ -64,8 +80,6 @@ def generatePath(new_player, graph):
         visited = set()
         main_path = []
         while s.size() > 0:
-            if len(visited) == len(graph):
-                    return main_path
             vertex = s.pop()
             main_path.append(vertex)
             neighbors_traveled = True
@@ -73,61 +87,47 @@ def generatePath(new_player, graph):
                 visited.add(vertex)
                 boolean = True
                 for destination in graph[vertex][0]:
-                    if destination:
-                        s.push(destination)
-                        if destination not in visited:
-                            boolean = False
+                    if destination not in visited:
+                        boolean = False
+                        s.push(destination)                            
                         break
                 if boolean:
+                    if len(visited) == len(graph):
+                        return main_path
                     graph[vertex][1] = True
-            else:
-                print(vertex, 'fired')
-                current_vertex = vertex
-                length = len(main_path) - 1
-                for destination in graph[vertex][0]:
-                    if destination not in visited:
-                        print('a false destin')
-                        neighbors_traveled = False
-                if neighbors_traveled:
-                    print('a true destin')
-                    graph[vertex][1] = True
-                new_path = main_path[:]
-                length -= 1
-                while graph[current_vertex][1]:
+                    print(vertex, 'fired')
+                    length = len(main_path) - 1
+                    current_vertex = vertex
+                    new_path = main_path[:]
+                    print(current_vertex, '<---vertex')
+                    while graph[current_vertex][1]:
                         length -= 1
                         current_vertex = main_path[length]
-                        if new_path[-1] != current_vertex:
-                            new_path.append(current_vertex)
-                print(main_path, '<---before modifying')
-                main_path = new_path
-                print(main_path, '<---after')
-                for destination in graph[current_vertex][0]:
-                    if destination not in visited:
-                        s.push(destination)
-                        print(destination)
-                        break
+                        new_path.append(current_vertex)
+                        for destination in graph[current_vertex][0]:
+                            if destination not in visited:
+                                print('a false destin')
+                                neighbors_traveled = False
+                        if neighbors_traveled:
+                            print('a true destin')
+                            graph[current_vertex][1] = True
+                    print(main_path, '<---before modifying')
+                    main_path = new_path
+                    print(main_path, '<---after')
+                    for destination in graph[current_vertex][0]:
+                        if destination not in visited:
+                            s.push(destination)
+                            print(destination)
+                            break
 
         return main_path
 
-
-
-
-
-
-    global mapGraph
-    modifiedMap = {}
-    for (key, value) in mapGraph.items():
-        modifiedMap[key] = []
-        modifiedMap[key].append(set())
-        modifiedMap[key].append(False)
-        for (direction, destination) in value.items():
-            modifiedMap[key][0].add(destination)
-    print(modifiedMap)
-    traversalPaths = dfs(modifiedMap, new_player.currentRoom)
-    print(modifiedMap)
+    print(graph)
+    traversalPaths = dfs(graph, new_player.currentRoom)
+    print(graph)
     return traversalPaths
 
-possiblePaths = generatePath(player, mapGraph)
+possiblePaths = generatePath(player, modifiedMap)
 print(possiblePaths)
 print(len(possiblePaths))
 
