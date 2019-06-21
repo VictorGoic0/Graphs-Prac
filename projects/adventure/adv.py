@@ -64,22 +64,67 @@ def generatePath(new_player, graph):
         visited = set()
         main_path = []
         while s.size() > 0:
+            if len(visited) == len(graph):
+                    return main_path
             vertex = s.pop()
             main_path.append(vertex)
+            neighbors_traveled = True
             if vertex not in visited:
                 visited.add(vertex)
-                for destination in graph[vertex]:
+                boolean = True
+                for destination in graph[vertex][0]:
                     if destination:
                         s.push(destination)
+                        if destination not in visited:
+                            boolean = False
+                        break
+                if boolean:
+                    graph[vertex][1] = True
+            else:
+                print(vertex, 'fired')
+                current_vertex = vertex
+                length = len(main_path) - 1
+                for destination in graph[vertex][0]:
+                    if destination not in visited:
+                        print('a false destin')
+                        neighbors_traveled = False
+                if neighbors_traveled:
+                    print('a true destin')
+                    graph[vertex][1] = True
+                new_path = main_path[:]
+                length -= 1
+                while graph[current_vertex][1]:
+                        length -= 1
+                        current_vertex = main_path[length]
+                        if new_path[-1] != current_vertex:
+                            new_path.append(current_vertex)
+                print(main_path, '<---before modifying')
+                main_path = new_path
+                print(main_path, '<---after')
+                for destination in graph[current_vertex][0]:
+                    if destination not in visited:
+                        s.push(destination)
+                        print(destination)
+                        break
+
         return main_path
+
+
+
+
+
+
     global mapGraph
     modifiedMap = {}
     for (key, value) in mapGraph.items():
-        modifiedMap[key] = set()
+        modifiedMap[key] = []
+        modifiedMap[key].append(set())
+        modifiedMap[key].append(False)
         for (direction, destination) in value.items():
-            modifiedMap[key].add(destination)
-
+            modifiedMap[key][0].add(destination)
+    print(modifiedMap)
     traversalPaths = dfs(modifiedMap, new_player.currentRoom)
+    print(modifiedMap)
     return traversalPaths
 
 possiblePaths = generatePath(player, mapGraph)
