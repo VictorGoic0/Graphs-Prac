@@ -95,17 +95,17 @@ def dft(graph, starting_room):
         main_path.append(vertex)
         if vertex not in visited:
             visited.add(vertex)
-            boolean = True
+            neighbors_visited = True
             not_visited = []
             for destination in graph[vertex]:
                 if destination not in visited:
-                    boolean = False
+                    neighbors_visited = False
                     not_visited.append(destination)
             # Select a random neighbor I haven't traveled through, and add it to the stack.
-            if not boolean:
+            if not neighbors_visited:
                 random_sample = random.sample(not_visited, 1)
                 s.push(random_sample.pop())
-            if boolean:
+            if neighbors_visited:
                 if len(visited) == len(graph):
                     return main_path
                 # Dead-end, mark this vertex as complete
@@ -150,7 +150,7 @@ def dft(graph, starting_room):
                     s.push(value)
     return main_path
 
-def generatePath(new_player, graph):
+def generatePath(graph, new_player):
     resultPath = []
     for i in range(1000):
         result = dft(graph, new_player.currentRoom)
@@ -160,7 +160,7 @@ def generatePath(new_player, graph):
             resultPath = result
     return resultPath
 
-generatedPath = generatePath(player, modifiedMap)
+generatedPath = generatePath(modifiedMap, player)
 # print(generatedPath)
 # print(len(generatedPath))
 
