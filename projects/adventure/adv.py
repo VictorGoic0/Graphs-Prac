@@ -85,79 +85,78 @@ class Queue():
     def size(self):
         return len(self.queue)
 
-def generatePath(new_player, graph):
-    def dft(graph, starting_room):
-        s = Stack()
-        s.push(starting_room.id)
-        visited = set()
-        main_path = []
-        while s.size() > 0:
-            vertex = s.pop()
-            main_path.append(vertex)
-            if vertex not in visited:
-                visited.add(vertex)
-                boolean = True
-                not_visited = []
-                for destination in graph[vertex]:
-                    if destination not in visited:
-                        boolean = False
-                        not_visited.append(destination)
-                # Select a random neighbor I haven't traveled through, and add it to the stack.
-                if not boolean:
-                    random_sample = random.sample(not_visited, 1)
-                    s.push(random_sample.pop())
-                if boolean:
-                    if len(visited) == len(graph):
-                        return main_path
-                    # Dead-end, mark this vertex as complete
-                    current_vertex = vertex
-                    def inner_bfs(graph, starting_vertex):
-                        nonlocal visited
-                        q = Queue()
-                        q.enqueue([starting_vertex])
-                        inner_visited = set()
-                        while q.size() > 0:
-                            path = q.dequeue()
-                            node = path[-1]
-                            destinations_traveled = True
-                            for destinations in graph[node]:
-                                if destinations not in visited:
+def dft(graph, starting_room):
+    s = Stack()
+    s.push(starting_room.id)
+    visited = set()
+    main_path = []
+    while s.size() > 0:
+        vertex = s.pop()
+        main_path.append(vertex)
+        if vertex not in visited:
+            visited.add(vertex)
+            boolean = True
+            not_visited = []
+            for destination in graph[vertex]:
+                if destination not in visited:
+                    boolean = False
+                    not_visited.append(destination)
+            # Select a random neighbor I haven't traveled through, and add it to the stack.
+            if not boolean:
+                random_sample = random.sample(not_visited, 1)
+                s.push(random_sample.pop())
+            if boolean:
+                if len(visited) == len(graph):
+                    return main_path
+                # Dead-end, mark this vertex as complete
+                current_vertex = vertex
+                def inner_bfs(graph, starting_vertex):
+                    nonlocal visited
+                    q = Queue()
+                    q.enqueue([starting_vertex])
+                    inner_visited = set()
+                    while q.size() > 0:
+                        path = q.dequeue()
+                        node = path[-1]
+                        destinations_traveled = True
+                        for destinations in graph[node]:
+                            if destinations not in visited:
                                     destinations_traveled = False
-                            if not destinations_traveled:
-                                return path
-                            elif node not in inner_visited:
-                                inner_visited.add(node)
-                                for neighbor in graph[node]:
-                                    new_path = path[:]
-                                    new_path.append(neighbor)
-                                    q.enqueue(new_path)
+                        if not destinations_traveled:
+                            return path
+                        elif node not in inner_visited:
+                            inner_visited.add(node)
+                            for neighbor in graph[node]:
+                                new_path = path[:]
+                                new_path.append(neighbor)
+                                q.enqueue(new_path)
 
-                    new_path = inner_bfs(graph, current_vertex)
-                    main_path.pop()
-                    # Add the values from the BFS to the main path.
-                    main_path += new_path
-                    not_visited2 = []
-                    visited_bool = True
-                    current_vertex = main_path[-1]
+                new_path = inner_bfs(graph, current_vertex)
+                main_path.pop()
+                # Add the values from the BFS to the main path.
+                main_path += new_path
+                not_visited2 = []
+                visited_bool = True
+                current_vertex = main_path[-1]
 
-                    for destination in graph[current_vertex]:
-                        if destination not in visited:
-                            not_visited2.append(destination)
-                            visited_bool = False
-                    # Selecting a random neighbor that has not been visited, and adding it to the stack.
-                    if not visited_bool:
-                        random_sample = random.sample(not_visited2, 1)
-                        value = random_sample.pop()
-                        s.push(value)
-        return main_path
+                for destination in graph[current_vertex]:
+                    if destination not in visited:
+                        not_visited2.append(destination)
+                        visited_bool = False
+                # Selecting a random neighbor that has not been visited, and adding it to the stack.
+                if not visited_bool:
+                    random_sample = random.sample(not_visited2, 1)
+                    value = random_sample.pop()
+                    s.push(value)
+    return main_path
 
+def generatePath(new_player, graph):
     resultPath = []
     for i in range(1000):
         result = dft(graph, new_player.currentRoom)
         if i == 0:
             resultPath = result
         elif len(result) < len(resultPath):
-        # Only save the result if it is shorter than what was previously saved.
             resultPath = result
     return resultPath
 
