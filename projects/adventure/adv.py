@@ -148,14 +148,14 @@ def dft(graph, starting_room):
     return main_path
 
 def generatePath(graph, new_player):
-    resultPath = []
+    shortestPath = []
     for i in range(1000):
-        result = dft(graph, new_player.currentRoom)
+        resultPath = dft(graph, new_player.currentRoom)
         if i == 0:
-            resultPath = result
-        elif len(result) < len(resultPath):
-            resultPath = result
-    return resultPath
+            shortestPath = resultPath
+        elif len(resultPath) < len(shortestPath):
+            shortestPath = resultPath
+    return shortestPath
 
 generatedPath = generatePath(modifiedMap, player)
 # print(generatedPath)
@@ -169,7 +169,7 @@ for i in range(len(generatedPath)):
         direction = conversionMap[generatedPath[i-1]][generatedPath[i]]
         traversalPath.append(direction)
 
-print(traversalPath)
+# print(traversalPath)
 
 # TRAVERSAL TEST
 visited_rooms = set()
