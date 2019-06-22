@@ -23,10 +23,7 @@ world.loadGraph(roomGraph)
 mapGraph = {}
 
 for (room, value) in roomGraph.items():
-    n = 'n'
-    s = 's'
-    e = 'e'
-    w = 'w'
+    n, s, e, w = 'n', 's', 'e', 'w'
     mapGraph[room] = {}
     if n in value[1]:
         mapGraph[room][n] = value[1][n]
@@ -39,6 +36,9 @@ for (room, value) in roomGraph.items():
 
 modifiedMap = {}
 
+# Converting the main graph into one that's more readily usable. Each vertex has its value set to an array with length 2.
+# The first index is a set of vertices it can travel to. The second index is a boolean, False, which I will use to mark if a vertex's neighbors have all been traveled through.
+
 for (key, value) in mapGraph.items():
     modifiedMap[key] = []
     modifiedMap[key].append(set())
@@ -46,17 +46,14 @@ for (key, value) in mapGraph.items():
     for (direction, destination) in value.items():
         modifiedMap[key][0].add(destination)
 
-# Converting the main graph into one that's more readily usable. Each vertex has its value set to an array with length 2.
-# The first index is a set of vertices it can travel to. The second index is a boolean, False, which I will use to mark if a vertex's neighbors have all been traveled through.
-
 conversionMap = {}
+
+# This object will be used to convert the DFT results into cardinal directions
 
 for (room, value) in mapGraph.items():
     conversionMap[room] = {}
     for (direction, roomNumber) in value.items():
         conversionMap[room][roomNumber] = direction
-
-# This will be used to convert the DFT results into cardinal directions
 
 player = Player("Name", world.startingRoom)
 
@@ -91,19 +88,15 @@ class Queue():
     def size(self):
         return len(self.queue)
 
-# player.currentRoom.id, player.currentRoom.getExits() and player.travel(direction)
-
 def generatePath(new_player, graph):
     def dft(graph, starting_room):
         s = Stack()
         s.push(starting_room.id)
         visited = set()
         main_path = []
-        # This is where I collect the vertices I'm traveling through
         while s.size() > 0:
             vertex = s.pop()
             main_path.append(vertex)
-
             if vertex not in visited:
                 visited.add(vertex)
                 boolean = True
@@ -112,24 +105,16 @@ def generatePath(new_player, graph):
                     if destination not in visited:
                         boolean = False
                         not_visited.append(destination)
-
+                # Select a random neighbor I haven't traveled through, and add it to the stack.
                 if not boolean:
                     random_sample = random.sample(not_visited, 1)
-                    # print(random_sample)
                     s.push(random_sample.pop())
-                    # Select a random neighbor I haven't traveled through, and add it to the stack.
-
                 if boolean:
-                    # This section only triggers if the vertex has neighbors that have all been traveled through
-
                     if len(visited) == len(graph):
                         return main_path
+                    # Dead-end, mark this vertex as complete
                     graph[vertex][1] = True
-
-                    # Mark this vertex as complete
-                    # print(vertex, 'fired')
                     current_vertex = vertex
-                    # print(current_vertex, '<---vertex')
                     def inner_bfs(graph, starting_vertex):
                         nonlocal visited
                         q = Queue()
@@ -143,7 +128,6 @@ def generatePath(new_player, graph):
                                 if destinations not in visited:
                                     destinations_traveled = False
                             if not destinations_traveled:
-                                path.pop(0)
                                 return path
                             elif node not in inner_visited:
                                 inner_visited.add(node)
@@ -154,11 +138,9 @@ def generatePath(new_player, graph):
                             # Have this BFS find the ideal path backwards to an 
 
                     new_path = inner_bfs(graph, current_vertex)
-                    # print(new_path)
-                    # print(main_path, '<---before modifying')
                     # Add the values I just re-iterated through to the main path.
+                    main_path.pop()
                     main_path += new_path
-                    # print(main_path, '<---after')
                     not_visited2 = []
                     visited_bool = True
                     current_vertex = main_path[-1]
@@ -167,46 +149,42 @@ def generatePath(new_player, graph):
                         if destination not in visited:
                             not_visited2.append(destination)
                             visited_bool = False
+                    # Selecting a random neighbor that has not been visited, and adding it to the stack.
                     if not visited_bool:
                         random_sample = random.sample(not_visited2, 1)
-                        value =random_sample.pop()
-                        # print(value, '<---- adding this')
+                        value = random_sample.pop()
                         s.push(value)
-                    # Selecting a random neighbor that has not been visited, and adding it to the stack.
-
         return main_path
 
     resultPath = []
-    # Can't iterate more than 10 times for large graphs without running out of memory. For small graphs, the loop will run 1000 times
     # print(graph)
     for i in range(1000):
         result = dft(graph, new_player.currentRoom)
-        # print(result)
-        # Running my DFT loop_times number of times
         if i == 0:
             resultPath = result
         elif len(result) < len(resultPath):
+        # Only save the result if it is shorter than what was previously saved.
             resultPath = result
-            # Only save the result if it is shorter than what was previously saved.
         for (key, value) in graph.items():
+        # Reset the booleans in the graph to false.
             value[1] = False
-            # Reset the booleans in my graph to false.
 
     return resultPath
 
 generatedPath = generatePath(player, modifiedMap)
 # print(generatedPath)
-print(len(generatedPath))
+# print(len(generatedPath))
+
+
+# Converting the generated path back into cardinal directions
+# This is done by looking at the conversionMap object, and looking for the value at i-1. Inside this object, I look for the current index, and take the cardinal direction that is its value.
 
 for i in range(len(generatedPath)):
     if i > 0:
         direction = conversionMap[generatedPath[i-1]][generatedPath[i]]
         traversalPath.append(direction)
-        # Converting the generated path back into cardinal directions
-        # This is done by looking at the conversionMap object, and looking for the value at i-1. Inside this object, I look for the current index, and take the cardinal direction that is its value.
 
-# print(traversalPath)
-# print(len(traversalPath))
+print(traversalPath)
 
 # TRAVERSAL TEST
 visited_rooms = set()
