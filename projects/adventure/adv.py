@@ -36,15 +36,12 @@ for (room, value) in roomGraph.items():
 
 modifiedMap = {}
 
-# Converting the main graph into one that's more readily usable. Each vertex has its value set to an array with length 2.
-# The first index is a set of vertices it can travel to. The second index is a boolean, False, which I will use to mark if a vertex's neighbors have all been traveled through.
+# Converting the main graph into one that's more readily usable.
 
 for (key, value) in mapGraph.items():
-    modifiedMap[key] = []
-    modifiedMap[key].append(set())
-    modifiedMap[key].append(False)
+    modifiedMap[key] = set()
     for (direction, destination) in value.items():
-        modifiedMap[key][0].add(destination)
+        modifiedMap[key].add(destination)
 
 conversionMap = {}
 
@@ -101,7 +98,7 @@ def generatePath(new_player, graph):
                 visited.add(vertex)
                 boolean = True
                 not_visited = []
-                for destination in graph[vertex][0]:
+                for destination in graph[vertex]:
                     if destination not in visited:
                         boolean = False
                         not_visited.append(destination)
@@ -113,7 +110,6 @@ def generatePath(new_player, graph):
                     if len(visited) == len(graph):
                         return main_path
                     # Dead-end, mark this vertex as complete
-                    graph[vertex][1] = True
                     current_vertex = vertex
                     def inner_bfs(graph, starting_vertex):
                         nonlocal visited
@@ -124,28 +120,27 @@ def generatePath(new_player, graph):
                             path = q.dequeue()
                             node = path[-1]
                             destinations_traveled = True
-                            for destinations in graph[node][0]:
+                            for destinations in graph[node]:
                                 if destinations not in visited:
                                     destinations_traveled = False
                             if not destinations_traveled:
                                 return path
                             elif node not in inner_visited:
                                 inner_visited.add(node)
-                                for neighbor in graph[node][0]:
+                                for neighbor in graph[node]:
                                     new_path = path[:]
                                     new_path.append(neighbor)
                                     q.enqueue(new_path)
-                            # Have this BFS find the ideal path backwards to an 
 
                     new_path = inner_bfs(graph, current_vertex)
-                    # Add the values I just re-iterated through to the main path.
                     main_path.pop()
+                    # Add the values from the BFS to the main path.
                     main_path += new_path
                     not_visited2 = []
                     visited_bool = True
                     current_vertex = main_path[-1]
 
-                    for destination in graph[current_vertex][0]:
+                    for destination in graph[current_vertex]:
                         if destination not in visited:
                             not_visited2.append(destination)
                             visited_bool = False
@@ -157,7 +152,6 @@ def generatePath(new_player, graph):
         return main_path
 
     resultPath = []
-    # print(graph)
     for i in range(1000):
         result = dft(graph, new_player.currentRoom)
         if i == 0:
@@ -165,16 +159,11 @@ def generatePath(new_player, graph):
         elif len(result) < len(resultPath):
         # Only save the result if it is shorter than what was previously saved.
             resultPath = result
-        for (key, value) in graph.items():
-        # Reset the booleans in the graph to false.
-            value[1] = False
-
     return resultPath
 
 generatedPath = generatePath(player, modifiedMap)
 # print(generatedPath)
 # print(len(generatedPath))
-
 
 # Converting the generated path back into cardinal directions
 # This is done by looking at the conversionMap object, and looking for the value at i-1. Inside this object, I look for the current index, and take the cardinal direction that is its value.
