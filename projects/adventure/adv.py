@@ -108,8 +108,6 @@ def dft(graph, starting_room):
             if neighbors_visited:
                 if len(visited) == len(graph):
                     return main_path
-                # Dead-end, mark this vertex as complete
-                current_vertex = vertex
                 def inner_bfs(graph, starting_vertex):
                     nonlocal visited
                     q = Queue()
@@ -131,23 +129,22 @@ def dft(graph, starting_room):
                                 new_path.append(neighbor)
                                 q.enqueue(new_path)
 
-                new_path = inner_bfs(graph, current_vertex)
+                new_path = inner_bfs(graph, vertex)
                 main_path.pop()
                 # Add the values from the BFS to the main path.
                 main_path += new_path
-                not_visited2 = []
+                non_visited = []
                 visited_bool = True
                 current_vertex = main_path[-1]
 
                 for destination in graph[current_vertex]:
                     if destination not in visited:
-                        not_visited2.append(destination)
+                        non_visited.append(destination)
                         visited_bool = False
                 # Selecting a random neighbor that has not been visited, and adding it to the stack.
                 if not visited_bool:
-                    random_sample = random.sample(not_visited2, 1)
-                    value = random_sample.pop()
-                    s.push(value)
+                    random_sample = random.sample(non_visited, 1)
+                    s.push(random_sample.pop())
     return main_path
 
 def generatePath(graph, new_player):
