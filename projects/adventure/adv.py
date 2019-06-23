@@ -3,6 +3,7 @@ from player import Player
 from world import World
 
 import random
+import copy
 
 # Load world
 world = World()
@@ -17,14 +18,216 @@ roomGraph={494: [(1, 8), {'e': 457}], 492: [(1, 20), {'e': 400}], 493: [(2, 5), 
 world.loadGraph(roomGraph)
 
 # UNCOMMENT TO VIEW MAP
-world.printRooms()
+# world.printRooms()
+
+mapGraph = {}
+
+for (room, value) in roomGraph.items():
+    n, s, e, w = 'n', 's', 'e', 'w'
+    mapGraph[room] = {}
+    if n in value[1]:
+        mapGraph[room][n] = value[1][n]
+    if s in value[1]:
+        mapGraph[room][s] = value[1][s]
+    if e in value[1]:
+        mapGraph[room][e] = value[1][e]
+    if w in value[1]:
+        mapGraph[room][w] = value[1][w]
+
+modifiedMap = {}
+
+# Converting the main graph into one that's more readily usable.
+
+for (key, value) in mapGraph.items():
+    modifiedMap[key] = set()
+    for (direction, destination) in value.items():
+        modifiedMap[key].add(destination)
+
+conversionMap = {}
+
+# This object will be used to convert the DFT results into cardinal directions
+
+for (room, value) in mapGraph.items():
+    conversionMap[room] = {}
+    for (direction, roomNumber) in value.items():
+        conversionMap[room][roomNumber] = direction
 
 player = Player("Name", world.startingRoom)
 
-# Fill this out
+# print(mapGraph)
+# print(conversionMap)
+
 traversalPath = []
 
+class ListNode:
+  def __init__(self, value, prev=None, next=None):
+    self.value = value
+    self.prev = prev
+    self.next = next
 
+  def insert_after(self, value):
+    current_next = self.next
+    self.next = ListNode(value, self, current_next)
+    if current_next:
+      current_next.prev = self.next
+
+  def insert_before(self, value):
+    current_prev = self.prev
+    self.prev = ListNode(value, current_prev, self)
+    if current_prev:
+      current_prev.next = self.prev
+
+  def delete(self):
+    if self.prev:
+      self.prev.next = self.next
+    if self.next:
+      self.next.prev = self.prev
+
+class DoublyLinkedList:
+  def __init__(self, node=None):
+    self.head = node
+    self.tail = node
+    self.length = 1 if node is not None else 0
+
+  def remove_from_head(self):
+    current_head = self.head
+    self.delete(self.head)
+    self.head = current_head.next
+    return current_head.value
+
+  def add_to_tail(self, value):
+    if self.tail:
+      current_tail = self.tail
+      self.tail.insert_after(value)
+      self.tail = ListNode(value, current_tail)
+      current_tail.next = self.tail
+    else:
+      self.tail = ListNode(value)
+      self.head = self.tail
+    self.length += 1
+
+  def delete(self, node):
+    if node.prev == None:
+      self.head = node.next
+    elif node.next == None:
+      self.tail = node.prev
+    node.delete()
+    self.length -= 1
+    if (self.length == 0):
+      self.head = None
+      self.tail = None
+
+class Queue:
+  def __init__(self):
+    self.length = 0
+    self.storage = DoublyLinkedList()
+  def enqueue(self, item):
+    self.storage.add_to_tail(item)
+    self.length += 1
+  def dequeue(self):
+    if self.length == 0:
+      return None
+    else:
+      item = self.storage.remove_from_head()
+      self.length -= 1
+      return item
+  def size(self):
+    return self.length
+
+class Stack():
+    def __init__(self):
+        self.stack = []
+    def push(self, value):
+        self.stack.append(value)
+    def pop(self):
+        if self.size() > 0:
+            return self.stack.pop()
+        else:
+            return None
+    def size(self):
+        return len(self.stack)
+
+visited = set()
+
+def inner_bfs(graph, starting_vertex):
+  global visited
+  q = Queue()
+  q.enqueue([starting_vertex])
+  inner_visited = set()
+  while q.size() > 0:
+    path = q.dequeue()
+    node = path[-1]
+    for destination in graph[node]:
+      if destination not in visited:
+        return path
+    if node not in inner_visited:
+      inner_visited.add(node)
+      for neighbor in graph[node]:
+        new_path = path[:]
+        new_path.append(neighbor)
+        q.enqueue(new_path)
+
+def dft(graph, starting_room):
+  global visited
+  s = Stack()
+  s.push(starting_room.id)
+  main_path = []
+  while s.size() > 0:
+    vertex = s.pop()
+    main_path.append(vertex)
+    if vertex not in visited:
+      visited.add(vertex)
+      if len(visited) == len(graph):
+        return main_path
+      dead_end = True
+      not_visited = []
+      for destination in graph[vertex]:
+        if destination not in visited:
+          dead_end = False
+          not_visited.append(destination)
+      if not dead_end:
+        random_sample = random.sample(not_visited, 1)
+        s.push(random_sample.pop())
+      if dead_end:
+        # The BFS looks for the shortest path from a dead_end vertex to a vertex with at least 1 unexplored neighbor
+        new_path = inner_bfs(graph, vertex)
+        main_path.pop()
+        # Add the path from the BFS to the main path
+        main_path += new_path
+        non_visited = []
+        current_vertex = main_path[-1]
+        for destination in graph[current_vertex]:
+          if destination not in visited:
+            non_visited.append(destination)
+        random_sample = random.sample(non_visited, 1)
+        s.push(random_sample.pop())
+  return main_path
+
+def generatePath(graph, new_player):
+  global visited
+  shortestPath = []
+  for i in range(1000):
+    resultPath = dft(graph, new_player.currentRoom)
+    if i == 0:
+      shortestPath = resultPath
+    elif len(resultPath) < len(shortestPath):
+      shortestPath = resultPath
+    visited.clear()
+  return shortestPath
+
+generatedPath = generatePath(modifiedMap, player)
+# print(generatedPath)
+# print(len(generatedPath))
+
+# Converting the generated path back into cardinal directions
+# This is done by looking at the conversionMap object, and looking for the value at i-1. Inside this object, I look for the current index, and take the cardinal direction that is its value.
+
+for i in range(len(generatedPath)):
+  if i > 0:
+    direction = conversionMap[generatedPath[i-1]][generatedPath[i]]
+    traversalPath.append(direction)
+
+# print(traversalPath)
 
 # TRAVERSAL TEST
 visited_rooms = set()

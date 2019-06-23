@@ -1,4 +1,79 @@
+import random
 
+class ListNode:
+  def __init__(self, value, prev=None, next=None):
+    self.value = value
+    self.prev = prev
+    self.next = next
+
+  def insert_after(self, value):
+    current_next = self.next
+    self.next = ListNode(value, self, current_next)
+    if current_next:
+      current_next.prev = self.next
+
+  def insert_before(self, value):
+    current_prev = self.prev
+    self.prev = ListNode(value, current_prev, self)
+    if current_prev:
+      current_prev.next = self.prev
+
+  def delete(self):
+    if self.prev:
+      self.prev.next = self.next
+    if self.next:
+      self.next.prev = self.prev
+
+class DoublyLinkedList:
+  def __init__(self, node=None):
+    self.head = node
+    self.tail = node
+    self.length = 1 if node is not None else 0
+
+  def remove_from_head(self):
+    current_head = self.head
+    self.delete(self.head)
+    self.head = current_head.next
+    return current_head.value
+
+  def add_to_tail(self, value):
+    if self.tail:
+      current_tail = self.tail
+      self.tail.insert_after(value)
+      self.tail = ListNode(value, current_tail)
+      current_tail.next = self.tail
+    else:
+      self.tail = ListNode(value)
+      self.head = self.tail
+    self.length += 1
+
+  def delete(self, node):
+    if node.prev == None:
+      self.head = node.next
+    elif node.next == None:
+      self.tail = node.prev
+    node.delete()
+    self.length -= 1
+    if (self.length == 0):
+      self.head = None
+      self.tail = None
+
+class Queue:
+  def __init__(self):
+    self.length = 0
+    self.storage = DoublyLinkedList()
+  def enqueue(self, item):
+    self.storage.add_to_tail(item)
+    self.length += 1
+  def dequeue(self):
+    if self.length == 0:
+      return None
+    else:
+      item = self.storage.remove_from_head()
+      self.length -= 1
+      return item
+  def size(self):
+    return self.length
 
 class User:
     def __init__(self, name):
@@ -31,42 +106,52 @@ class SocialGraph:
         self.friendships[self.lastID] = set()
 
     def populateGraph(self, numUsers, avgFriendships):
-        """
-        Takes a number of users and an average number of friendships
-        as arguments
+        if numUsers <= avgFriendships:
+            return "The number of users must be greater than the average number of friendships."
 
-        Creates that number of users and a randomly distributed friendships
-        between those users.
-
-        The number of users must be greater than the average number of friendships.
-        """
-        # Reset graph
         self.lastID = 0
         self.users = {}
         self.friendships = {}
-        # !!!! IMPLEMENT ME
 
-        # Add users
+        for i in range(numUsers):
+            self.addUser(f'randomUser#{i+1}')
 
-        # Create friendships
+        for userID, user in self.users.items():
+            numOfFriends = random.randint(0, avgFriendships)
+            for i in range(numOfFriends):
+                randomFriendID = random.randint(1, numUsers)
+                if randomFriendID != userID and randomFriendID not in self.friendships[userID]:
+                    self.addFriendship(userID, randomFriendID)
 
     def getAllSocialPaths(self, userID):
-        """
-        Takes a user's userID as an argument
+        if userID not in self.friendships:
+            return -1
 
-        Returns a dictionary containing every user in that user's
-        extended network with the shortest friendship path between them.
+        if len(self.friendships[userID]) == 0:
+            return {}
 
-        The key is the friend's ID and the value is the path.
-        """
-        visited = {}  # Note that this is a dictionary, not a set
-        # !!!! IMPLEMENT ME
-        return visited
-
+        def bfs(graph, starting_vertex):
+            q = Queue()
+            q.enqueue([starting_vertex])
+            friendships = {}
+            while q.size() > 0:
+                path = q.dequeue()
+                vertex = path[-1]
+                if vertex not in friendships:
+                    friendships[vertex] = path
+                    for friend in graph[vertex]:
+                        if friend not in friendships:
+                            new_path = path[:]
+                            new_path.append(friend)
+                            q.enqueue(new_path)
+            return friendships
+        socialPaths = bfs(self.friendships, userID)
+        return socialPaths
+        
 
 if __name__ == '__main__':
     sg = SocialGraph()
-    sg.populateGraph(10, 2)
+    sg.populateGraph(100000, 5)
     print(sg.friendships)
     connections = sg.getAllSocialPaths(1)
     print(connections)
