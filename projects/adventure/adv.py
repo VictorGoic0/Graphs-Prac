@@ -147,77 +147,73 @@ class Stack():
     def size(self):
         return len(self.stack)
 
+visited = set()
+
+def inner_bfs(graph, starting_vertex):
+  global visited
+  q = Queue()
+  q.enqueue([starting_vertex])
+  inner_visited = set()
+  while q.size() > 0:
+    path = q.dequeue()
+    node = path[-1]
+    for destination in graph[node]:
+      if destination not in visited:
+        return path
+    if node not in inner_visited:
+      inner_visited.add(node)
+      for neighbor in graph[node]:
+        new_path = path[:]
+        new_path.append(neighbor)
+        q.enqueue(new_path)
+
 def dft(graph, starting_room):
-    s = Stack()
-    s.push(starting_room.id)
-    visited = set()
-    main_path = []
-    while s.size() > 0:
-        vertex = s.pop()
-        main_path.append(vertex)
-        if vertex not in visited:
-            visited.add(vertex)
-            neighbors_visited = True
-            not_visited = []
-            for destination in graph[vertex]:
-                if destination not in visited:
-                    neighbors_visited = False
-                    not_visited.append(destination)
-            # Select a random neighbor I haven't traveled through, and add it to the stack.
-            if not neighbors_visited:
-                random_sample = random.sample(not_visited, 1)
-                s.push(random_sample.pop())
-            if neighbors_visited:
-                if len(visited) == len(graph):
-                    return main_path
-                def inner_bfs(graph, starting_vertex):
-                    nonlocal visited
-                    q = Queue()
-                    q.enqueue([starting_vertex])
-                    inner_visited = set()
-                    while q.size() > 0:
-                        path = q.dequeue()
-                        node = path[-1]
-                        destinations_traveled = True
-                        for destinations in graph[node]:
-                            if destinations not in visited:
-                                    destinations_traveled = False
-                        if not destinations_traveled:
-                            return path
-                        elif node not in inner_visited:
-                            inner_visited.add(node)
-                            for neighbor in graph[node]:
-                                new_path = path[:]
-                                new_path.append(neighbor)
-                                q.enqueue(new_path)
-
-                new_path = inner_bfs(graph, vertex)
-                main_path.pop()
-                # Add the values from the BFS to the main path.
-                main_path += new_path
-                non_visited = []
-                visited_bool = True
-                current_vertex = main_path[-1]
-
-                for destination in graph[current_vertex]:
-                    if destination not in visited:
-                        non_visited.append(destination)
-                        visited_bool = False
-                # Selecting a random neighbor that has not been visited, and adding it to the stack.
-                if not visited_bool:
-                    random_sample = random.sample(non_visited, 1)
-                    s.push(random_sample.pop())
-    return main_path
+  global visited
+  s = Stack()
+  s.push(starting_room.id)
+  main_path = []
+  while s.size() > 0:
+    vertex = s.pop()
+    main_path.append(vertex)
+    if vertex not in visited:
+      visited.add(vertex)
+      if len(visited) == len(graph):
+        return main_path
+      dead_end = True
+      not_visited = []
+      for destination in graph[vertex]:
+        if destination not in visited:
+          dead_end = False
+          not_visited.append(destination)
+      if not dead_end:
+        random_sample = random.sample(not_visited, 1)
+        s.push(random_sample.pop())
+      if dead_end:
+        # The BFS looks for the shortest path from a dead_end vertex to a vertex with at least 1 unexplored neighbor
+        new_path = inner_bfs(graph, vertex)
+        main_path.pop()
+        # Add the path from the BFS to the main path
+        main_path += new_path
+        non_visited = []
+        current_vertex = main_path[-1]
+        for destination in graph[current_vertex]:
+          if destination not in visited:
+            non_visited.append(destination)
+        random_sample = random.sample(non_visited, 1)
+        s.push(random_sample.pop())
+  return main_path
 
 def generatePath(graph, new_player):
-    shortestPath = []
-    for i in range(1000):
-        resultPath = dft(graph, new_player.currentRoom)
-        if i == 0:
-            shortestPath = resultPath
-        elif len(resultPath) < len(shortestPath):
-            shortestPath = resultPath
-    return shortestPath
+  global visited
+  shortestPath = []
+  for i in range(1000):
+    resultPath = dft(graph, new_player.currentRoom)
+    if i == 0:
+      shortestPath = resultPath
+    elif len(resultPath) < len(shortestPath):
+      shortestPath = resultPath
+    visited.clear()
+  return shortestPath
 
 generatedPath = generatePath(modifiedMap, player)
 # print(generatedPath)
@@ -227,9 +223,9 @@ generatedPath = generatePath(modifiedMap, player)
 # This is done by looking at the conversionMap object, and looking for the value at i-1. Inside this object, I look for the current index, and take the cardinal direction that is its value.
 
 for i in range(len(generatedPath)):
-    if i > 0:
-        direction = conversionMap[generatedPath[i-1]][generatedPath[i]]
-        traversalPath.append(direction)
+  if i > 0:
+    direction = conversionMap[generatedPath[i-1]][generatedPath[i]]
+    traversalPath.append(direction)
 
 # print(traversalPath)
 
